@@ -1,0 +1,382 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================
+   ALGOMIND — GLOBAL DESIGN SYSTEM
+   ============================================ */
+
+@layer base {
+  :root {
+    color-scheme: dark;
+    --scrollbar-track: #0f0f23;
+    --scrollbar-thumb: rgba(124, 58, 237, 0.4);
+    --scrollbar-thumb-hover: rgba(124, 58, 237, 0.7);
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  html, body, #root {
+    min-height: 100%;
+  }
+
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: #030712;
+    color: #e2e8f0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+  }
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thumb-hover);
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  button, input, select, textarea {
+    font-family: inherit;
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  code, pre, .font-mono {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+  }
+
+  ::selection {
+    background: rgba(124, 58, 237, 0.3);
+    color: #e2e8f0;
+  }
+}
+
+@layer components {
+
+  /* =====================
+     GLASS CARD VARIANTS
+     ===================== */
+  .glass {
+    @apply bg-white/[0.04] backdrop-blur-xl border border-white/[0.08] rounded-2xl;
+  }
+
+  .glass-sm {
+    @apply bg-white/[0.03] backdrop-blur-lg border border-white/[0.06] rounded-xl;
+  }
+
+  .glass-dark {
+    @apply bg-black/30 backdrop-blur-xl border border-white/[0.06] rounded-2xl;
+  }
+
+  /* =====================
+     GRADIENT BORDERS
+     ===================== */
+  .gradient-border {
+    position: relative;
+  }
+
+  .gradient-border::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    padding: 1px;
+    border-radius: inherit;
+    background: linear-gradient(135deg, rgba(124,58,237,0.6), rgba(6,182,212,0.4), rgba(124,58,237,0.2));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  /* =====================
+     GLOW EFFECTS
+     ===================== */
+  .glow-brand {
+    box-shadow: 0 0 30px rgba(124, 58, 237, 0.25), 0 0 60px rgba(124, 58, 237, 0.1);
+  }
+
+  .glow-cyan {
+    box-shadow: 0 0 30px rgba(6, 182, 212, 0.25), 0 0 60px rgba(6, 182, 212, 0.1);
+  }
+
+  .text-glow {
+    text-shadow: 0 0 20px rgba(167, 139, 250, 0.5);
+  }
+
+  /* =====================
+     GRADIENT TEXT
+     ===================== */
+  .gradient-text {
+    @apply bg-gradient-to-r from-brand-400 via-purple-300 to-cyan-400 bg-clip-text text-transparent;
+  }
+
+  .gradient-text-brand {
+    @apply bg-gradient-to-r from-brand-400 to-brand-300 bg-clip-text text-transparent;
+  }
+
+  /* =====================
+     ANIMATED BACKGROUNDS
+     ===================== */
+  .bg-mesh {
+    background-image:
+      radial-gradient(ellipse 80% 60% at 50% -10%, rgba(124,58,237,0.2), transparent),
+      radial-gradient(ellipse 60% 40% at 80% 80%, rgba(6,182,212,0.1), transparent),
+      radial-gradient(ellipse 40% 60% at 10% 60%, rgba(124,58,237,0.08), transparent);
+  }
+
+  .bg-grid {
+    background-image:
+      linear-gradient(rgba(124,58,237,0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(124,58,237,0.05) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  /* =====================
+     DIFFICULTY BADGES
+     ===================== */
+  .badge-easy {
+    @apply bg-emerald-500/10 text-emerald-400 border border-emerald-500/20;
+  }
+
+  .badge-medium {
+    @apply bg-amber-500/10 text-amber-400 border border-amber-500/20;
+  }
+
+  .badge-hard {
+    @apply bg-red-500/10 text-red-400 border border-red-500/20;
+  }
+
+  /* =====================
+     BUTTONS
+     ===================== */
+  .btn-primary {
+    @apply inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm
+           bg-gradient-to-r from-brand-600 to-brand-500 text-white
+           hover:from-brand-500 hover:to-brand-400
+           transition-all duration-200 shadow-glow hover:shadow-glow-lg
+           active:scale-95 select-none;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm
+           bg-white/[0.06] text-white border border-white/[0.12]
+           hover:bg-white/[0.10] hover:border-white/[0.20]
+           transition-all duration-200
+           active:scale-95 select-none;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm
+           text-slate-400 hover:text-white hover:bg-white/[0.06]
+           transition-all duration-150
+           active:scale-95 select-none;
+  }
+
+  .btn-icon {
+    @apply p-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/[0.06]
+           transition-all duration-150 active:scale-95;
+  }
+
+  /* =====================
+     INPUTS
+     ===================== */
+  .input-field {
+    @apply w-full px-4 py-3 rounded-xl bg-white/[0.04] border border-white/[0.10]
+           text-white placeholder-slate-500 text-sm
+           focus:outline-none focus:border-brand-500/50 focus:bg-white/[0.06]
+           focus:ring-2 focus:ring-brand-500/20
+           transition-all duration-200;
+  }
+
+  /* =====================
+     CODE EDITOR AREA
+     ===================== */
+  .code-editor {
+    @apply font-mono text-sm bg-[#0d0d1a] text-slate-300
+           border border-white/[0.08] rounded-xl
+           focus:outline-none focus:border-brand-500/40
+           resize-none leading-relaxed p-4;
+  }
+
+  /* =====================
+     SECTION LAYOUT
+     ===================== */
+  .section-container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  /* =====================
+     HEATMAP CELL
+     ===================== */
+  .heatmap-cell {
+    @apply w-3 h-3 rounded-sm transition-all duration-150 hover:scale-125;
+  }
+
+  /* =====================
+     NAV LINK
+     ===================== */
+  .nav-link {
+    @apply text-sm font-medium text-slate-400 hover:text-white transition-colors duration-150;
+  }
+
+  .nav-link-active {
+    @apply text-sm font-medium text-white;
+  }
+
+  /* =====================
+     PROBLEM STATUS
+     ===================== */
+  .status-solved {
+    @apply w-2 h-2 rounded-full bg-emerald-400;
+  }
+
+  .status-attempted {
+    @apply w-2 h-2 rounded-full bg-amber-400;
+  }
+
+  .status-unsolved {
+    @apply w-2 h-2 rounded-full bg-slate-600;
+  }
+
+  /* =====================
+     CHAT BUBBLE
+     ===================== */
+  .chat-user {
+    @apply bg-brand-600/20 border border-brand-500/20 text-slate-200 rounded-2xl rounded-br-sm;
+  }
+
+  .chat-ai {
+    @apply bg-white/[0.04] border border-white/[0.08] text-slate-200 rounded-2xl rounded-bl-sm;
+  }
+
+  /* =====================
+     SHIMMER LOADING
+     ===================== */
+  .shimmer {
+    background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.03) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+}
+
+/* ============================================
+   PROSE (Markdown content)
+   ============================================ */
+.prose-dark {
+  color: #cbd5e1;
+  line-height: 1.75;
+}
+
+.prose-dark h1, .prose-dark h2, .prose-dark h3 {
+  color: #f1f5f9;
+  font-weight: 700;
+  margin: 1.5rem 0 0.75rem;
+}
+
+.prose-dark p {
+  margin: 0.75rem 0;
+}
+
+.prose-dark code {
+  background: rgba(124, 58, 237, 0.15);
+  color: #c4b5fd;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 0.875em;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.prose-dark pre {
+  background: #0d0d1a;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 1rem;
+  overflow-x: auto;
+}
+
+.prose-dark pre code {
+  background: transparent;
+  color: #e2e8f0;
+  padding: 0;
+}
+
+.prose-dark ul, .prose-dark ol {
+  padding-left: 1.5rem;
+  margin: 0.75rem 0;
+}
+
+.prose-dark li {
+  margin: 0.4rem 0;
+}
+
+.prose-dark strong {
+  color: #f1f5f9;
+  font-weight: 600;
+}
+
+/* ============================================
+   PAGE TRANSITIONS
+   ============================================ */
+.page-enter {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.page-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 300ms, transform 300ms;
+}
+
+/* ============================================
+   UTILITY
+   ============================================ */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
