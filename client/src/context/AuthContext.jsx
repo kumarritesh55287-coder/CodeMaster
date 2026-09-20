@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect } from 'react'
 
 const AuthContext = createContext(null)
 
-const DEMO_USER = {
+const DEFAULT_USER = {
   id: 'demo-001',
   name: 'Rahul Kumar',
   email: 'demo@algomind.ai',
@@ -28,21 +28,43 @@ export function AuthProvider({ children }) {
   }, [])
 
   const login = async (email, password) => {
-    // Demo login — accept demo credentials or any credentials
-    await new Promise(r => setTimeout(r, 800))
-    if (email && password.length >= 6) {
-      const u = { ...DEMO_USER, email }
+    await new Promise(r => setTimeout(r, 600))
+    if (email && password) {
+      const stored = localStorage.getItem(`user_${email}`)
+      let u
+      if (stored) {
+        u = JSON.parse(stored)
+      } else {
+        const namePart = email.split('@')[0].replace(/[._]/g, ' ')
+        const formattedName = namePart.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+        const avatar = formattedName.split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase() || 'U'
+        u = {
+          ...DEFAULT_USER,
+          id: `user-${Date.now()}`,
+          name: formattedName,
+          email: email,
+          avatar: avatar,
+        }
+      }
       localStorage.setItem('algomind_user', JSON.stringify(u))
       setUser(u)
       return u
     }
-    throw new Error('Invalid credentials. Use demo@algomind.ai / demo123')
+    throw new Error('Please fill in valid credentials.')
   }
 
   const signup = async (name, email, password) => {
-    await new Promise(r => setTimeout(r, 1000))
-    if (name && email && password.length >= 6) {
-      const u = { ...DEMO_USER, name, email, avatar: name.split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase() }
+    await new Promise(r => setTimeout(r, 600))
+    if (name && email && password.length >= 4) {
+      const avatar = name.split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase() || 'U'
+      const u = {
+        ...DEFAULT_USER,
+        id: `user-${Date.now()}`,
+        name,
+        email,
+        avatar,
+      }
+      localStorage.setItem(`user_${email}`, JSON.stringify(u))
       localStorage.setItem('algomind_user', JSON.stringify(u))
       setUser(u)
       return u
@@ -69,3 +91,4 @@ export const useAuth = () => {
 }
 
 export default AuthContext
+

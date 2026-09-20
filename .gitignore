@@ -28,6 +28,15 @@ out/
 server/.env
 client/.env
 
+# SQLite Databases & Local DB files
+*.sqlite
+*.sqlite-journal
+*.db
+server/data/*.sqlite
+
+# Deprecated/Old Directories
+frontend/
+
 # Editor settings
 .vscode/
 .idea/
@@ -38,3 +47,4 @@ client/.env
 *.sw?
 .DS_Store
 Thumbs.db
+

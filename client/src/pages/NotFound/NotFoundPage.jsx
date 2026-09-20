@@ -4,7 +4,7 @@ import { Brain, Home, ArrowLeft, Code2 } from 'lucide-react'
 
 export default function NotFoundPage() {
   return (
-    <div className="min-h-screen bg-[#030712] flex flex-col items-center justify-center text-center px-4 bg-mesh">
+    <div className="min-h-screen bg-[#424933] flex flex-col items-center justify-center text-center px-4 bg-mesh">
       <div className="absolute inset-0 bg-grid opacity-30 pointer-events-none" />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-brand-600/10 rounded-full blur-3xl pointer-events-none" />
 

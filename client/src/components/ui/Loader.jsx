@@ -16,7 +16,7 @@ export function Loader({ text = 'Loading...' }) {
 
 export function PageLoader() {
   return (
-    <div className="fixed inset-0 bg-[#030712] flex flex-col items-center justify-center gap-6 z-50">
+    <div className="fixed inset-0 bg-[#424933] flex flex-col items-center justify-center gap-6 z-50">
       <motion.div
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}

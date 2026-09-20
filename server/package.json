@@ -1,7 +1,7 @@
 {
   "name": "codemaster-ai-server",
   "version": "1.0.0",
-  "description": "CodeMaster AI Backend API",
+  "description": "CodeMaster AI Backend API with MongoDB & SQL Database CRUD Operations",
   "main": "server.js",
   "type": "module",
   "scripts": {
@@ -9,9 +9,11 @@
     "dev": "node --watch server.js"
   },
   "dependencies": {
-    "express": "^4.18.2",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "mongoose": "^8.2.0",
+    "sqlite3": "^5.1.7",
     "uuid": "^9.0.0"
   },
   "devDependencies": {

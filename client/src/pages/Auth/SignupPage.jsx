@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Brain, Mail, Lock, Eye, EyeOff, User, ArrowRight, Zap, CheckCircle2 } from 'lucide-react'
+import { Brain, Mail, Lock, Eye, EyeOff, User, ArrowRight, ArrowLeft, Zap, CheckCircle2 } from 'lucide-react'
 import { Github } from '../../components/common/BrandIcons'
 import { useAuth } from '../../context/AuthContext'
 
@@ -56,7 +56,18 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#030712] flex items-center justify-center p-6">
+    <div className="min-h-screen bg-[#424933] flex items-center justify-center p-6 pt-20 pb-12 relative">
+      {/* Top Back Button */}
+      <div className="absolute top-5 left-5 z-20">
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/[0.05] border border-white/10 text-slate-300 hover:text-white hover:bg-white/10 transition-all text-xs font-semibold cursor-pointer group"
+          aria-label="Go back"
+        >
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+          Back
+        </button>
+      </div>
       <div className="w-full max-w-md">
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
           <Link to="/" className="flex items-center gap-3 mb-8 justify-center">
@@ -68,9 +79,9 @@ export default function SignupPage() {
 
           <div className="glass gradient-border rounded-3xl p-8">
             <div className="mb-6 text-center">
-              <h1 className="text-2xl font-black text-white mb-2">Create your account</h1>
-              <p className="text-slate-400 text-sm">Already have one?{' '}
-                <Link to="/login" className="text-brand-400 hover:text-brand-300 font-medium">Sign in</Link>
+              <h1 className="text-2xl font-black text-black mb-2">Create your account</h1>
+              <p className="text-black font-medium text-sm">Already have one?{' '}
+                <Link to="/login" className="text-black font-bold underline hover:opacity-80">Sign in</Link>
               </p>
             </div>
 
@@ -86,47 +97,47 @@ export default function SignupPage() {
               </button>
             </div>
             <div className="relative flex items-center gap-4 mb-5">
-              <div className="flex-1 h-px bg-white/[0.08]" />
-              <span className="text-slate-600 text-sm">or</span>
-              <div className="flex-1 h-px bg-white/[0.08]" />
+              <div className="flex-1 h-px bg-black/20" />
+              <span className="text-black font-bold text-sm">or</span>
+              <div className="flex-1 h-px bg-black/20" />
             </div>
 
             {error && (
               <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
-                className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+                className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 font-medium text-sm">
                 {error}
               </motion.div>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1.5">Full Name</label>
+                <label className="block text-sm font-bold text-black mb-1.5">Full Name</label>
                 <div className="relative">
                   <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                   <input type="text" required value={form.name}
                     onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
                     placeholder="Rahul Sharma"
-                    className="input-field pl-10" />
+                    className="input-field pl-10 text-black placeholder-slate-400" />
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1.5">Email</label>
+                <label className="block text-sm font-bold text-black mb-1.5">Email</label>
                 <div className="relative">
                   <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                   <input type="email" required value={form.email}
                     onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
                     placeholder="you@example.com"
-                    className="input-field pl-10" />
+                    className="input-field pl-10 text-black placeholder-slate-400" />
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1.5">Password</label>
+                <label className="block text-sm font-bold text-black mb-1.5">Password</label>
                 <div className="relative">
                   <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                   <input type={showPw ? 'text' : 'password'} required value={form.password}
                     onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
                     placeholder="Min. 8 characters"
-                    className="input-field pl-10 pr-10" />
+                    className="input-field pl-10 pr-10 text-black placeholder-slate-400" />
                   <button type="button" onClick={() => setShowPw(p => !p)}
                     className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300">
                     {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -136,10 +147,10 @@ export default function SignupPage() {
                   <div className="mt-2 space-y-1">
                     <div className="flex gap-1">
                       {[25, 50, 75, 100].map(level => (
-                        <div key={level} className={`flex-1 h-1 rounded-full transition-all ${strength >= level ? strengthInfo.color : 'bg-white/[0.08]'}`} />
+                        <div key={level} className={`flex-1 h-1 rounded-full transition-all ${strength >= level ? strengthInfo.color : 'bg-black/20'}`} />
                       ))}
                     </div>
-                    <p className="text-xs text-slate-500">{strengthInfo.label}</p>
+                    <p className="text-xs text-black font-bold">{strengthInfo.label}</p>
                   </div>
                 )}
               </div>
@@ -158,15 +169,15 @@ export default function SignupPage() {
               </button>
             </form>
 
-            <div className="mt-5 flex items-start gap-2 text-xs text-slate-600">
+            <div className="mt-5 flex items-start gap-2 text-xs text-black font-medium">
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 mt-0.5 flex-shrink-0" />
               No credit card required. Free forever on the Free plan.
             </div>
 
-            <p className="mt-3 text-slate-600 text-xs">
+            <p className="mt-3 text-black font-medium text-xs">
               By signing up, you agree to our{' '}
-              <Link to="/terms" className="text-slate-500 hover:text-slate-300">Terms</Link> and{' '}
-              <Link to="/privacy" className="text-slate-500 hover:text-slate-300">Privacy Policy</Link>
+              <Link to="/terms" className="text-black font-bold underline hover:opacity-80">Terms</Link> and{' '}
+              <Link to="/privacy" className="text-black font-bold underline hover:opacity-80">Privacy Policy</Link>
             </p>
           </div>
         </motion.div>

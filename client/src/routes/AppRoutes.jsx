@@ -18,16 +18,15 @@ import ContestPage from '../pages/Contest/ContestPage'
 import ProfilePage from '../pages/Profile/ProfilePage'
 import NotFoundPage from '../pages/NotFound/NotFoundPage'
 
-// Pages that should NOT show the standard navbar/footer
-const FULLSCREEN_ROUTES = ['/login', '/signup', '/workspace', '/problems/']
+const FULLSCREEN_ROUTES = ['/login', '/signin', '/signup']
 
 const pageVariants = {
-  initial: { opacity: 0, y: 12 },
+  initial: { opacity: 0, y: 8 },
   animate: { opacity: 1, y: 0 },
   exit: { opacity: 0, y: -8 },
 }
 
-const pageTransition = { duration: 0.3, ease: 'easeOut' }
+const pageTransition = { duration: 0.2, ease: 'easeOut' }
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -37,16 +36,14 @@ function ScrollToTop() {
 
 function AppLayout() {
   const { pathname } = useLocation()
-  const isFullscreen = FULLSCREEN_ROUTES.some(r => pathname.startsWith(r))
   const isWorkspace = pathname.startsWith('/problems/') && pathname !== '/problems'
+  const isAuth = FULLSCREEN_ROUTES.includes(pathname)
 
-  if (isFullscreen || isWorkspace) {
+  if (isWorkspace) {
     return (
       <AnimatePresence mode="wait">
-        <motion.div key={pathname} variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={pageTransition}>
+        <motion.div key={pathname} variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={pageTransition} className="h-screen overflow-hidden">
           <Routes>
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/signup" element={<SignupPage />} />
             <Route path="/problems/:slug" element={<WorkspacePage />} />
           </Routes>
         </motion.div>
@@ -54,10 +51,24 @@ function AppLayout() {
     )
   }
 
+  if (isAuth) {
+    return (
+      <AnimatePresence mode="wait">
+        <motion.div key={pathname} variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={pageTransition}>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/signin" element={<LoginPage />} />
+            <Route path="/signup" element={<SignupPage />} />
+          </Routes>
+        </motion.div>
+      </AnimatePresence>
+    )
+  }
+
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-[#424933] text-[#eff1f6]">
       <Navbar />
-      <main className="flex-1">
+      <main className="flex-1 pt-14">
         <AnimatePresence mode="wait">
           <motion.div key={pathname} variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={pageTransition}>
             <Routes>

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Brain, Mail, Lock, Eye, EyeOff, ArrowRight, Zap, CheckCircle2 } from 'lucide-react'
+import { Brain, Mail, Lock, Eye, EyeOff, ArrowRight, ArrowLeft, Zap, CheckCircle2 } from 'lucide-react'
 import { Github } from '../../components/common/BrandIcons'
 import { useAuth } from '../../context/AuthContext'
 
@@ -32,16 +32,28 @@ export default function LoginPage() {
       await login(form.email, form.password)
       navigate('/dashboard')
     } catch (err) {
-      setError(err.message || 'Invalid credentials. Try demo@algomind.ai / demo123')
+      setError(err.message || 'Invalid credentials.')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen bg-[#030712] flex">
+    <div className="min-h-screen bg-[#424933] flex flex-col lg:flex-row relative">
+      {/* Top back button for mobile / general */}
+      <div className="absolute top-5 left-5 z-20">
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/[0.05] border border-white/10 text-slate-300 hover:text-white hover:bg-white/10 transition-all text-xs font-semibold cursor-pointer group"
+          aria-label="Go back"
+        >
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+          Back
+        </button>
+      </div>
+
       {/* Left Panel — Branding */}
-      <div className="hidden lg:flex flex-col justify-between w-[480px] flex-shrink-0 p-12 bg-gradient-to-br from-brand-950 via-[#0a0520] to-[#030712] border-r border-white/[0.06] relative overflow-hidden">
+      <div className="hidden lg:flex flex-col justify-between w-[480px] flex-shrink-0 p-12 pt-20 bg-gradient-to-br from-brand-950 via-[#0a0520] to-[#030712] border-r border-white/[0.06] relative overflow-hidden">
         <div className="absolute inset-0 bg-grid opacity-50" />
         <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-64 h-64 bg-brand-600/20 rounded-full blur-3xl" />
 
@@ -54,25 +66,25 @@ export default function LoginPage() {
 
         <div className="relative space-y-8">
           <div>
-            <h2 className="text-3xl font-black text-white mb-3">Welcome back,<br />coder.</h2>
-            <p className="text-slate-400 leading-relaxed">Continue your journey to algorithmic mastery with your AI mentor.</p>
+            <h2 className="text-3xl font-black text-black mb-3">Welcome back,<br />coder.</h2>
+            <p className="text-black font-medium leading-relaxed">Continue your journey to algorithmic mastery with your AI mentor.</p>
           </div>
           <div className="space-y-3">
             {benefits.map((b, i) => (
               <motion.div key={i} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 * i }}
                 className="flex items-center gap-3">
                 <CheckCircle2 className="w-4 h-4 text-brand-400 flex-shrink-0" />
-                <span className="text-slate-300 text-sm">{b}</span>
+                <span className="text-black font-medium text-sm">{b}</span>
               </motion.div>
             ))}
           </div>
         </div>
 
-        <p className="relative text-slate-600 text-xs">© 2025 AlgoMind. Built for developers.</p>
+        <p className="relative text-black font-semibold text-xs">© 2025 AlgoMind. Built for developers.</p>
       </div>
 
       {/* Right Panel — Form */}
-      <div className="flex-1 flex items-center justify-center p-6">
+      <div className="flex-1 flex items-center justify-center p-6 pt-20">
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
           className="w-full max-w-md">
 
@@ -85,9 +97,9 @@ export default function LoginPage() {
           </Link>
 
           <div className="mb-8">
-            <h1 className="text-3xl font-black text-white mb-2">Sign in</h1>
-            <p className="text-slate-400">Don't have an account?{' '}
-              <Link to="/signup" className="text-brand-400 hover:text-brand-300 font-medium">Create one free</Link>
+            <h1 className="text-3xl font-black text-black mb-2">Sign in</h1>
+            <p className="text-black font-medium">Don't have an account?{' '}
+              <Link to="/signup" className="text-black font-bold underline hover:opacity-80">Create one free</Link>
             </p>
           </div>
 
@@ -104,21 +116,21 @@ export default function LoginPage() {
           </div>
 
           <div className="relative flex items-center gap-4 mb-6">
-            <div className="flex-1 h-px bg-white/[0.08]" />
-            <span className="text-slate-600 text-sm">or</span>
-            <div className="flex-1 h-px bg-white/[0.08]" />
+            <div className="flex-1 h-px bg-black/20" />
+            <span className="text-black font-bold text-sm">or</span>
+            <div className="flex-1 h-px bg-black/20" />
           </div>
 
           {error && (
             <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
-              className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+              className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 font-medium text-sm">
               {error}
             </motion.div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">Email</label>
+              <label className="block text-sm font-bold text-black mb-2">Email</label>
               <div className="relative">
                 <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                 <input
@@ -126,14 +138,14 @@ export default function LoginPage() {
                   value={form.email}
                   onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
                   placeholder="you@example.com"
-                  className="input-field pl-10"
+                  className="input-field pl-10 text-black placeholder-slate-400"
                 />
               </div>
             </div>
             <div>
               <div className="flex justify-between mb-2">
-                <label className="text-sm font-medium text-slate-300">Password</label>
-                <Link to="/forgot-password" className="text-xs text-brand-400 hover:text-brand-300">Forgot password?</Link>
+                <label className="text-sm font-bold text-black">Password</label>
+                <Link to="/forgot-password" className="text-xs text-black font-bold underline hover:opacity-80">Forgot password?</Link>
               </div>
               <div className="relative">
                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
@@ -142,7 +154,7 @@ export default function LoginPage() {
                   value={form.password}
                   onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
                   placeholder="••••••••"
-                  className="input-field pl-10 pr-10"
+                  className="input-field pl-10 pr-10 text-black placeholder-slate-400"
                 />
                 <button type="button" onClick={() => setShowPw(p => !p)}
                   className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300">
@@ -165,14 +177,14 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <p className="mt-6 text-center text-slate-600 text-xs">
-            Demo: <span className="text-slate-500">demo@algomind.ai</span> / <span className="text-slate-500">demo123</span>
+          <p className="mt-6 text-center text-black font-medium text-xs">
+            Demo: <span className="text-black font-bold">demo@algomind.ai</span> / <span className="text-black font-bold">demo123</span>
           </p>
 
-          <p className="mt-4 text-center text-slate-600 text-xs">
+          <p className="mt-4 text-center text-black font-medium text-xs">
             By signing in, you agree to our{' '}
-            <Link to="/terms" className="text-slate-500 hover:text-slate-300">Terms</Link> and{' '}
-            <Link to="/privacy" className="text-slate-500 hover:text-slate-300">Privacy Policy</Link>
+            <Link to="/terms" className="text-black font-bold underline hover:opacity-80">Terms</Link> and{' '}
+            <Link to="/privacy" className="text-black font-bold underline hover:opacity-80">Privacy Policy</Link>
           </p>
         </motion.div>
       </div>

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Trophy, Flame, Code2, Star, Globe, Edit2, CheckCircle2, Clock, TrendingUp, Calendar, Target, BarChart3, Zap } from 'lucide-react'
 import { Github, Linkedin } from '../../components/common/BrandIcons'
+import { useAuth } from '../../context/AuthContext'
 
 // Generate heatmap data
 const generateHeatmap = () => {
@@ -49,6 +50,19 @@ const recentSubmissions = [
 
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState('overview')
+  const { user } = useAuth()
+
+  const profileUser = user || {
+    name: 'Rahul Kumar',
+    email: 'demo@algomind.ai',
+    avatar: 'RK',
+    rating: 1847,
+    streak: 14,
+    solved: 87,
+    rank: 2341,
+  }
+
+  const handle = profileUser.email ? `@${profileUser.email.split('@')[0]}` : '@user'
 
   const tabs = ['overview', 'submissions', 'achievements', 'stats']
 
@@ -61,7 +75,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#030712] pt-8 pb-20">
+    <div className="min-h-screen bg-[#424933] pt-4 pb-20">
       <div className="section-container max-w-5xl">
 
         {/* Profile Header */}
@@ -71,7 +85,7 @@ export default function ProfilePage() {
           <div className="relative flex flex-col sm:flex-row gap-6 items-start">
             <div className="relative">
               <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-brand-600 to-cyan-500 flex items-center justify-center text-white font-black text-2xl shadow-glow">
-                RK
+                {profileUser.avatar || 'U'}
               </div>
               <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-emerald-500 border-2 border-[#030712] flex items-center justify-center">
                 <span className="text-[8px]">✓</span>
@@ -81,9 +95,9 @@ export default function ProfilePage() {
             <div className="flex-1">
               <div className="flex items-start justify-between">
                 <div>
-                  <h1 className="text-2xl font-black text-white">Rahul Kumar</h1>
-                  <p className="text-slate-400 text-sm">@rahul_codes · Expert Level</p>
-                  <p className="text-slate-500 text-sm mt-1">Passionate about DSA and competitive programming 🚀</p>
+                  <h1 className="text-2xl font-black text-white">{profileUser.name}</h1>
+                  <p className="text-slate-400 text-sm">{handle} · Expert Level</p>
+                  <p className="text-slate-500 text-sm mt-1">{profileUser.email} · Account Active 🚀</p>
                 </div>
                 <button className="btn-secondary text-sm">
                   <Edit2 className="w-4 h-4" /> Edit Profile
@@ -92,10 +106,10 @@ export default function ProfilePage() {
 
               <div className="flex flex-wrap gap-4 mt-4">
                 <a href="#" className="flex items-center gap-1.5 text-slate-400 hover:text-white text-sm transition-colors">
-                  <Github className="w-4 h-4" /> rahul-kumar
+                  <Github className="w-4 h-4" /> {profileUser.email ? profileUser.email.split('@')[0] : 'github'}
                 </a>
                 <a href="#" className="flex items-center gap-1.5 text-slate-400 hover:text-brand-400 text-sm transition-colors">
-                  <Linkedin className="w-4 h-4" /> Rahul Kumar
+                  <Linkedin className="w-4 h-4" /> {profileUser.name}
                 </a>
                 <span className="flex items-center gap-1.5 text-slate-400 text-sm">
                   <Globe className="w-4 h-4" /> India
