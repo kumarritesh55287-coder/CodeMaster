@@ -2,14 +2,31 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 /**
- * Judge0 Code Execution Engine Service
+ * Real Judge0 Code Execution Engine Service
+ * Executes code in isolated sandbox via Judge0 API
  */
 
-const JUDGE0_API_URL = process.env.JUDGE0_API_URL || 'https://judge0-ce.p.rapidapi.com';
+const JUDGE0_API_URL = process.env.JUDGE0_API_URL || 'https://ce.judge0.com';
 const JUDGE0_API_KEY = process.env.JUDGE0_API_KEY || '';
 
 /**
- * Execute code via Judge0 API
+ * Safe Base64 helper for UTF-8 strings
+ */
+function toBase64(str) {
+  return Buffer.from(str || '', 'utf-8').toString('base64');
+}
+
+function fromBase64(b64Str) {
+  if (!b64Str) return '';
+  try {
+    return Buffer.from(b64Str, 'base64').toString('utf-8');
+  } catch (e) {
+    return b64Str;
+  }
+}
+
+/**
+ * Execute code via Judge0 API with actual execution engine
  * @param {number} languageId Judge0 Language ID
  * @param {string} sourceCode Source code string
  * @param {string} stdin Input string
@@ -18,11 +35,6 @@ const JUDGE0_API_KEY = process.env.JUDGE0_API_KEY || '';
 export async function executeWithJudge0(languageId, sourceCode, stdin = '') {
   if (!sourceCode || typeof sourceCode !== 'string') {
     throw new Error('Source code is required');
-  }
-
-  // Fallback engine if Judge0 API key is not configured or in offline demo mode
-  if (!JUDGE0_API_KEY && (!JUDGE0_API_URL || JUDGE0_API_URL.includes('rapidapi.com'))) {
-    return simulateLocalExecution(languageId, sourceCode, stdin);
   }
 
   const isRapidAPI = JUDGE0_API_URL.includes('rapidapi.com');
@@ -38,144 +50,120 @@ export async function executeWithJudge0(languageId, sourceCode, stdin = '') {
   }
 
   try {
-    // 1. Submit code to Judge0
-    const submitRes = await fetch(`${JUDGE0_API_URL}/submissions?base64_encoded=true&wait=false`, {
+    // Attempt 1: Raw submission with wait=true & base64_encoded=false
+    const rawUrl = `${JUDGE0_API_URL}/submissions?base64_encoded=false&wait=true`;
+    const rawRes = await fetch(rawUrl, {
       method: 'POST',
       headers,
       body: JSON.stringify({
         language_id: languageId,
-        source_code: Buffer.from(sourceCode).toString('base64'),
-        stdin: Buffer.from(stdin || '').toString('base64')
+        source_code: sourceCode,
+        stdin: stdin
       })
     });
 
-    if (!submitRes.ok) {
-      const errText = await submitRes.text();
-      console.warn('Judge0 API Submission Warning:', submitRes.status, errText);
-      return simulateLocalExecution(languageId, sourceCode, stdin);
-    }
-
-    const submitData = await submitRes.json();
-    const token = submitData.token;
-
-    if (!token) {
-      return simulateLocalExecution(languageId, sourceCode, stdin);
-    }
-
-    // 2. Poll for submission result (max 10 attempts)
-    let attempts = 0;
-    const maxAttempts = 10;
-
-    while (attempts < maxAttempts) {
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      attempts++;
-
-      const pollRes = await fetch(`${JUDGE0_API_URL}/submissions/${token}?base64_encoded=true`, {
-        method: 'GET',
-        headers
-      });
-
-      if (!pollRes.ok) continue;
-
-      const result = await pollRes.json();
-      const statusId = result.status?.id;
-
-      // Status 1 = In Queue, 2 = Processing
-      if (statusId === 1 || statusId === 2) {
-        continue;
+    if (rawRes.ok) {
+      const result = await rawRes.json();
+      if (result.status && result.status.id !== 1 && result.status.id !== 2) {
+        return parseJudge0Response(result, false);
       }
-
-      // Decode base64 outputs
-      const decode = (b64) => (b64 ? Buffer.from(b64, 'base64').toString('utf-8') : '');
-
-      return {
-        stdout: decode(result.stdout),
-        stderr: decode(result.stderr),
-        compile_output: decode(result.compile_output),
-        status: result.status || { id: 3, description: 'Accepted' },
-        time: result.time ? `${result.time} s` : '0.05 s',
-        memory: result.memory ? `${(result.memory / 1024).toFixed(1)} MB` : '4.2 MB'
-      };
+      if (result.token) {
+        return await pollSubmission(result.token, headers, false);
+      }
     }
 
-    return {
-      stdout: '',
-      stderr: 'Execution timed out waiting for response from compiler service.',
-      compile_output: '',
-      status: { id: 5, description: 'Time Limit Exceeded' },
-      time: '> 5.0 s',
-      memory: 'N/A'
-    };
+    // Attempt 2: Base64 submission with wait=true & base64_encoded=true
+    const b64Url = `${JUDGE0_API_URL}/submissions?base64_encoded=true&wait=true`;
+    const b64Res = await fetch(b64Url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        language_id: languageId,
+        source_code: toBase64(sourceCode),
+        stdin: toBase64(stdin)
+      })
+    });
+
+    if (b64Res.ok) {
+      const result = await b64Res.json();
+      if (result.status && result.status.id !== 1 && result.status.id !== 2) {
+        return parseJudge0Response(result, true);
+      }
+      if (result.token) {
+        return await pollSubmission(result.token, headers, true);
+      }
+    }
+
+    throw new Error('No valid response received from Judge0 code execution service.');
   } catch (error) {
-    console.error('Judge0 Service Exception:', error.message);
-    return simulateLocalExecution(languageId, sourceCode, stdin);
+    console.error('Judge0 Service Error:', error.message);
+    throw new Error(`Code execution failed: ${error.message}`);
   }
 }
 
 /**
- * High-reliability fallback simulation for development & offline environments
+ * Poll Judge0 submission by token until completion
  */
-function simulateLocalExecution(languageId, sourceCode, stdin) {
-  const startTime = Date.now();
-  let stdout = '';
-  let stderr = '';
-  let status = { id: 3, description: 'Accepted' };
+async function pollSubmission(token, headers, isBase64 = true) {
+  let attempts = 0;
+  const maxAttempts = 15;
+  const pollInterval = 600;
 
-  try {
-    if (languageId === 63) { // JavaScript
-      const logs = [];
-      const customLog = (...args) => logs.push(args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' '));
-      const fn = new Function('console', 'stdin', `
-        let log = console.log;
-        try {
-          ${sourceCode}
-        } catch(e) {
-          throw e;
-        }
-      `);
-      fn({ log: customLog }, stdin);
-      stdout = logs.join('\n');
-    } else if (languageId === 71) { // Python
-      const printMatches = sourceCode.match(/print\((.*)\)/g);
-      if (printMatches) {
-        stdout = printMatches.map(p => {
-          const val = p.replace(/print\(["']?(.*?)["']?\)/, '$1');
-          return val.replace(/\\n/g, '\n');
-        }).join('\n');
-      } else {
-        stdout = 'Program finished with code 0';
-      }
-    } else if (languageId === 54 || languageId === 50) { // C/C++
-      if (sourceCode.includes('Hello World')) {
-        stdout = 'Hello World';
-      } else if (sourceCode.includes('cout <<') || sourceCode.includes('printf')) {
-        stdout = stdin ? `Processed input:\n${stdin}` : 'Program executed successfully.';
-      } else {
-        stdout = 'Program finished with code 0';
-      }
-    } else if (languageId === 62) { // Java
-      if (sourceCode.includes('System.out.println')) {
-        const match = sourceCode.match(/System\.out\.println\(["']?(.*?)["']?\);/);
-        stdout = match ? match[1] : 'Hello World';
-      } else {
-        stdout = 'Program finished with code 0';
-      }
-    } else {
-      stdout = 'Execution complete.';
+  while (attempts < maxAttempts) {
+    await new Promise((res) => setTimeout(res, pollInterval));
+    attempts++;
+
+    const pollRes = await fetch(`${JUDGE0_API_URL}/submissions/${token}?base64_encoded=${isBase64}`, {
+      method: 'GET',
+      headers
+    });
+
+    if (!pollRes.ok) continue;
+
+    const result = await pollRes.json();
+    const statusId = result.status?.id;
+
+    if (statusId === 1 || statusId === 2) {
+      continue;
     }
-  } catch (err) {
-    stderr = err.message;
-    status = { id: 6, description: 'Compilation Error' };
+
+    return parseJudge0Response(result, isBase64);
   }
 
-  const elapsedSec = ((Date.now() - startTime + 40) / 1000).toFixed(2);
+  return {
+    stdout: '',
+    stderr: 'Execution timed out waiting for code execution service.',
+    compile_output: '',
+    status: { id: 5, description: 'Time Limit Exceeded' },
+    time: '> 5.0 s',
+    memory: 'N/A'
+  };
+}
 
-  return Promise.resolve({
-    stdout: stdout || (stderr ? '' : 'Execution output empty.'),
-    stderr,
-    compile_output: stderr,
-    status,
-    time: `${elapsedSec} s`,
-    memory: '8.4 MB'
-  });
+/**
+ * Parse & decode Judge0 response object
+ */
+function parseJudge0Response(result, isBase64 = true) {
+  const stdout = isBase64 ? fromBase64(result.stdout) : (result.stdout || '');
+  const stderr = isBase64 ? fromBase64(result.stderr) : (result.stderr || '');
+  const compile_output = isBase64 ? fromBase64(result.compile_output) : (result.compile_output || '');
+
+  let formattedTime = '0.01 s';
+  if (result.time) {
+    formattedTime = `${parseFloat(result.time).toFixed(3)} s`;
+  }
+
+  let formattedMemory = '4.0 MB';
+  if (result.memory) {
+    formattedMemory = `${(result.memory / 1024).toFixed(1)} MB`;
+  }
+
+  return {
+    stdout: stdout || '',
+    stderr: stderr || '',
+    compile_output: compile_output || '',
+    status: result.status || { id: 3, description: 'Accepted' },
+    time: formattedTime,
+    memory: formattedMemory
+  };
 }

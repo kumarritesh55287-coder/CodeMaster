@@ -1,25 +1,11 @@
 /**
- * Frontend Language Configuration & Monaco Identifiers
+ * Frontend Central Language Configuration & Monaco Identifiers
  */
 
 export const SUPPORTED_LANGUAGES = {
-  c: {
-    id: 'c',
-    name: 'C (GCC)',
-    judge0Id: 50,
-    monacoLang: 'c',
-    extension: 'c',
-    starterCode: `#include <stdio.h>
-
-int main() {
-    printf("Hello World\\n");
-    return 0;
-}
-`
-  },
   cpp: {
     id: 'cpp',
-    name: 'C++ (GCC 12)',
+    name: 'C++',
     judge0Id: 54,
     monacoLang: 'cpp',
     extension: 'cpp',
@@ -27,14 +13,28 @@ int main() {
 using namespace std;
 
 int main() {
-    cout << "Hello World" << endl;
+    cout << "Hello World";
+    return 0;
+}
+`
+  },
+  c: {
+    id: 'c',
+    name: 'C',
+    judge0Id: 50,
+    monacoLang: 'c',
+    extension: 'c',
+    starterCode: `#include <stdio.h>
+
+int main() {
+    printf("Hello World");
     return 0;
 }
 `
   },
   java: {
     id: 'java',
-    name: 'Java (JDK 17)',
+    name: 'Java',
     judge0Id: 62,
     monacoLang: 'java',
     extension: 'java',
@@ -47,7 +47,7 @@ int main() {
   },
   javascript: {
     id: 'javascript',
-    name: 'JavaScript (Node.js)',
+    name: 'JavaScript',
     judge0Id: 63,
     monacoLang: 'javascript',
     extension: 'js',

@@ -1,21 +1,22 @@
 import { getJudge0LanguageId } from '../config/languages.js';
 import { executeWithJudge0 } from '../services/judge0Service.js';
+import { preprocessCode } from '../execution/codePreprocessor.js';
 import ProblemModel from '../models/Problem.js';
 import SubmissionModel from '../models/Submission.js';
 import { sqlDb } from '../config/db.js';
 import { v4 as uuidv4 } from 'uuid';
 
 /**
- * Handle POST /api/code/run — Custom Input Code Execution
+ * Handle POST /api/code/run — Custom Input Code Execution via Judge0 & Language Harnesses
  */
 export async function runCode(req, res) {
   try {
-    const { language, sourceCode, stdin } = req.body;
+    const { language, languageId, sourceCode, stdin } = req.body;
 
-    if (!language || !sourceCode) {
+    if (!sourceCode || typeof sourceCode !== 'string') {
       return res.status(400).json({
         success: false,
-        error: 'Both language and sourceCode are required.'
+        error: 'sourceCode parameter is required.'
       });
     }
 
@@ -26,8 +27,23 @@ export async function runCode(req, res) {
       });
     }
 
-    const judge0Id = getJudge0LanguageId(language);
-    const result = await executeWithJudge0(judge0Id, sourceCode, stdin || '');
+    if (stdin && stdin.length > 65536) {
+      return res.status(400).json({
+        success: false,
+        error: 'Custom input size exceeds maximum limit of 64KB.'
+      });
+    }
+
+    const langKey = language || languageId || 'cpp';
+    const jId = getJudge0LanguageId(langKey);
+
+    // Preprocess source code to inject missing standard headers, namespaces & driver harnesses
+    const processedCode = preprocessCode(langKey, sourceCode, stdin || '');
+
+    console.log(`[CODE RUN] Language: ${langKey} (Judge0 ID: ${jId})`);
+    const result = await executeWithJudge0(jId, processedCode, stdin || '');
+
+    console.log(`[EXECUTION RESULT] Status: ${result.status?.description || 'Accepted'} | Time: ${result.time} | Memory: ${result.memory}`);
 
     return res.json({
       success: true,
@@ -36,38 +52,40 @@ export async function runCode(req, res) {
       compile_output: result.compile_output || '',
       status: result.status?.description || 'Accepted',
       statusId: result.status?.id || 3,
-      time: result.time || '0.05 s',
+      time: result.time || '0.01 s',
       memory: result.memory || '4.0 MB'
     });
   } catch (error) {
     console.error('Run Code Controller Error:', error);
     return res.status(400).json({
       success: false,
-      error: error.message || 'Execution failed.'
+      error: error.message || 'Code execution service unavailable.'
     });
   }
 }
 
 /**
- * Handle POST /api/code/submit — Test Case Execution & Verdict Evaluation
+ * Handle POST /api/code/submit — Test Case Evaluation via Judge0
  */
 export async function submitCode(req, res) {
   try {
-    const { problemSlug, language, sourceCode } = req.body;
+    const { problemId, problemSlug, language, languageId, sourceCode } = req.body;
+    const targetSlug = problemSlug || problemId;
 
-    if (!problemSlug || !language || !sourceCode) {
+    if (!targetSlug || (!language && !languageId) || !sourceCode) {
       return res.status(400).json({
         success: false,
-        error: 'problemSlug, language, and sourceCode are required.'
+        error: 'problemSlug, language/languageId, and sourceCode are required.'
       });
     }
 
-    const judge0Id = getJudge0LanguageId(language);
+    const langKey = language || languageId || 'cpp';
+    const jId = getJudge0LanguageId(langKey);
 
     // Fetch problem test cases from MongoDB or SQLite
     let testCases = [];
     try {
-      const mongoProb = await ProblemModel.findOne({ slug: problemSlug }).lean();
+      const mongoProb = await ProblemModel.findOne({ slug: targetSlug }).lean();
       if (mongoProb && mongoProb.testCases && mongoProb.testCases.length > 0) {
         testCases = mongoProb.testCases;
       }
@@ -76,10 +94,10 @@ export async function submitCode(req, res) {
     }
 
     if (!testCases || testCases.length === 0) {
-      // Default fallback test cases if problem has no DB record
       testCases = [
-        { input: { arg: 'test1' }, expected: 'test1' },
-        { input: { arg: 'test2' }, expected: 'test2' }
+        { input: '2 7 11 15\n9', expected: '[0, 1]' },
+        { input: '3 2 4\n6', expected: '[1, 2]' },
+        { input: '3 3\n6', expected: '[0, 1]' }
       ];
     }
 
@@ -93,7 +111,8 @@ export async function submitCode(req, res) {
       const stdinString = typeof tc.input === 'object' ? JSON.stringify(tc.input) : String(tc.input);
       const expectedString = typeof tc.expected === 'object' ? JSON.stringify(tc.expected) : String(tc.expected);
 
-      const execResult = await executeWithJudge0(judge0Id, sourceCode, stdinString);
+      const processedCode = preprocessCode(langKey, sourceCode, stdinString);
+      const execResult = await executeWithJudge0(jId, processedCode, stdinString);
 
       if (execResult.status && execResult.status.id !== 3) {
         overallStatus = execResult.status.description || 'Wrong Answer';
@@ -111,7 +130,7 @@ export async function submitCode(req, res) {
         caseNum: idx + 1,
         input: stdinString,
         expected: expectedString,
-        actual: actualTrimmed || execResult.stderr || 'No output',
+        actual: actualTrimmed || execResult.stderr || execResult.compile_output || 'No output',
         passed: isPassed
       });
 
@@ -128,27 +147,29 @@ export async function submitCode(req, res) {
 
     // Save submission to database
     const subId = uuidv4();
+    const langString = String(language || 'cpp');
+
     try {
       await SubmissionModel.create({
-        problemSlug,
-        language,
+        problemSlug: targetSlug,
+        language: langString,
         code: sourceCode,
         status: overallStatus,
         runtime: maxTime,
         memory: maxMemory
       });
+    } catch (e) {
+      // SQLite fallback
+    }
 
+    try {
       sqlDb.run(
         `INSERT INTO submissions (id, problemSlug, language, code, status, runtime, memory)
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [subId, problemSlug, language, sourceCode, overallStatus, maxTime, maxMemory]
+        [subId, targetSlug, langString, sourceCode, overallStatus, maxTime, maxMemory]
       );
     } catch (e) {
-      sqlDb.run(
-        `INSERT INTO submissions (id, problemSlug, language, code, status, runtime, memory)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [subId, problemSlug, language, sourceCode, overallStatus, maxTime, maxMemory]
-      );
+      // Ignore if table missing
     }
 
     return res.json({

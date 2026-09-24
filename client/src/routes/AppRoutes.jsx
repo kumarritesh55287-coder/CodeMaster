@@ -36,7 +36,7 @@ function ScrollToTop() {
 
 function AppLayout() {
   const { pathname } = useLocation()
-  const isWorkspace = pathname.startsWith('/problems/') && pathname !== '/problems'
+  const isWorkspace = (pathname.startsWith('/problems/') && pathname !== '/problems') || pathname.startsWith('/workspace') || pathname === '/code'
   const isAuth = FULLSCREEN_ROUTES.includes(pathname)
 
   if (isWorkspace) {
@@ -45,6 +45,9 @@ function AppLayout() {
         <motion.div key={pathname} variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={pageTransition} className="h-screen overflow-hidden">
           <Routes>
             <Route path="/problems/:slug" element={<WorkspacePage />} />
+            <Route path="/workspace/:slug" element={<WorkspacePage />} />
+            <Route path="/workspace" element={<WorkspacePage />} />
+            <Route path="/code" element={<WorkspacePage />} />
           </Routes>
         </motion.div>
       </AnimatePresence>
